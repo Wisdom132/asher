@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  telegramHandle String   @unique
+  userType       UserType
+  fundOrCompany  String
+  passwordHash   String
+  emailVerified  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  // Relationships
+  sentConnections     ConnectionRequest[] @relation("SentConnections")
+  receivedConnections ConnectionRequest[] @relation("ReceivedConnections")
+
+  sentChatRequests     ChatRequest[] @relation("SentChatRequests")
+  receivedChatRequests ChatRequest[] @relation("ReceivedChatRequests")
+
+  sentMessages ChatMessage[] @relation("SentMessages")
+
+  blockedUsers   BlockedUser[] @relation("BlockerRelation")
+  blockedByUsers BlockedUser[] @relation("BlockedRelation")
+
+  connectionsAsInvestor Connection[] @relation(name: "InvestorConnections")
+  connectionsAsCompany  Connection[] @relation(name: "CompanyConnections")
+}
+
+enum UserType {
+  Investor
+  Company
+  Admin
+}
+
+model ConnectionRequest {
+  id         String           @id @default(uuid())
+  investor   User             @relation(fields: [investorId], references: [id], name: "SentConnections")
+  investorId String
+  company    User             @relation(fields: [companyId], references: [id], name: "ReceivedConnections")
+  companyId  String
+  status     ConnectionStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model Connection {
+  id         String   @id @default(uuid())
+  investor   User     @relation(name: "InvestorConnections", fields: [investorId], references: [id])
+  investorId String
+  company    User     @relation(name: "CompanyConnections", fields: [companyId], references: [id])
+  companyId  String
+  createdAt  DateTime @default(now())
+
+  @@unique([investorId, companyId]) // Ensures a unique connection
+}
+
+model ChatRequest {
+  id         String     @id @default(uuid())
+  investor   User       @relation(fields: [investorId], references: [id], name: "SentChatRequests")
+  investorId String
+  company    User       @relation(fields: [companyId], references: [id], name: "ReceivedChatRequests")
+  companyId  String
+  status     ChatStatus @default(PENDING)
+  createdAt  DateTime   @default(now())
+
+  messages ChatMessage[]
+}
+
+enum ChatStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  chat      ChatRequest @relation(fields: [chatId], references: [id])
+  chatId    String
+  sender    User        @relation(fields: [senderId], references: [id], name: "SentMessages")
+  senderId  String
+  message   String
+  timestamp DateTime    @default(now())
+}
+
+model BlockedUser {
+  id        String   @id @default(uuid())
+  blocker   User     @relation(name: "BlockerRelation", fields: [blockerId], references: [id])
+  blockerId String
+  blocked   User     @relation(name: "BlockedRelation", fields: [blockedId], references: [id])
+  blockedId String
+  createdAt DateTime @default(now())
+}
