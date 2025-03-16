@@ -1,8 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpService } from '@nestjs/axios';
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  // OnModuleInit,
+  // OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions';
 import { Api } from 'telegram/tl';
+import * as fs from 'fs';
+import * as path from 'path';
+import input from 'input';
 
 interface TelegramCreateGroupResponse {
   result: { id: number };
@@ -34,15 +43,82 @@ export class TelegramService {
   private readonly botToken: string;
   private readonly apiUrl: string;
   private client: TelegramClient;
+  private readonly sessionFilePath = path.join(__dirname, '../../session.txt');
+  private stringSession: StringSession;
+  private readonly logger = new Logger(TelegramService.name);
 
   constructor(private readonly httpService: HttpService) {
     this.apiUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+    const sessionString = this.loadSession();
+    this.stringSession = new StringSession(sessionString);
     this.client = new TelegramClient(
-      new StringSession(''), // Empty for now
-      Number(process.env.TELEGRAM_API_ID), // Replace with your API ID
-      process.env.TELEGRAM_API_HASH, // Replace with your API Hash
+      new StringSession(sessionString),
+      Number(process.env.TELEGRAM_API_ID),
+      process.env.TELEGRAM_API_HASH,
       { connectionRetries: 5 },
     );
+  }
+
+  private loadSession(): string {
+    try {
+      if (fs.existsSync(this.sessionFilePath)) {
+        return fs.readFileSync(this.sessionFilePath, 'utf-8');
+      }
+    } catch (error) {
+      this.logger.error('Failed to load session', error);
+    }
+    return ''; // Return empty if no session exists
+  }
+
+  private saveSession(session: string) {
+    try {
+      fs.writeFileSync(this.sessionFilePath, session, 'utf-8');
+      this.logger.log('Session saved successfully.');
+    } catch (error) {
+      this.logger.error('Failed to save session', error);
+    }
+  }
+  async login(phoneNumber: string): Promise<string> {
+    try {
+      await this.client.start({
+        // eslint-disable-next-line @typescript-eslint/require-await
+        phoneNumber: async () => phoneNumber,
+        phoneCode: async () =>
+          await input.text('Enter the OTP sent to Telegram: '),
+        onError: (err) => console.log('Error:', err),
+      });
+
+      // Ensure session is properly saved
+      const sessionString =
+        this.client.session instanceof StringSession
+          ? this.client.session.save()
+          : '';
+
+      if (!sessionString) {
+        throw new Error('Failed to generate session string');
+      }
+
+      this.saveSession(sessionString);
+      return sessionString;
+    } catch (error) {
+      this.logger.error('Login failed', error);
+      throw new Error('Login failed: ' + error.message);
+    }
+  }
+
+  async connect(): Promise<void> {
+    if (!this.client.connected) {
+      await this.client.connect();
+    }
+  }
+
+  async isLoggedIn(): Promise<boolean> {
+    try {
+      await this.connect();
+      return !!(await this.client.getMe());
+    } catch (error) {
+      return false;
+    }
   }
 
   async onModuleInit() {
@@ -86,7 +162,6 @@ export class TelegramService {
         );
       return response.data?.result?.id;
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new Error('Failed to create Telegram group', error.response?.data);
     }
   }
@@ -102,7 +177,6 @@ export class TelegramService {
         );
       return response.data.result;
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new Error('Failed to retrieve messages', error.response?.data);
     }
   }

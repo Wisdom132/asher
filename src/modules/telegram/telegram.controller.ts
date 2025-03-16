@@ -1,4 +1,11 @@
-import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Body,
+  BadRequestException,
+} from '@nestjs/common';
 import { TelegramService } from './telegram.service';
 
 @Controller('telegram')
@@ -15,5 +22,18 @@ export class TelegramController {
 
     const isValid = await this.telegramService.validateHandle(handle);
     return { isValid };
+  }
+
+  @Post('login')
+  async login(@Body('phoneNumber') phoneNumber: string) {
+    console.log(`Logging in with phone: ${phoneNumber}`);
+    const session = await this.telegramService.login(phoneNumber);
+    return { message: 'Logged in successfully', session };
+  }
+
+  @Get('status')
+  async isLoggedIn() {
+    const status = await this.telegramService.isLoggedIn();
+    return { loggedIn: status };
   }
 }
