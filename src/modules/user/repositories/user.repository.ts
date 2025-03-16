@@ -4,23 +4,43 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { IUser } from '../interfaces/user.interface';
 import { HelperService } from '../../../utils/helpers';
+import { TelegramService } from '../../telegram/telegram.service';
+
 @Injectable()
 export class UserRepository {
   constructor(
     private readonly prisma: PrismaService,
-    public helperService: HelperService,
+    private readonly helperService: HelperService,
+    private readonly telegramService: TelegramService,
   ) {}
 
   async createUser(userData: CreateUserDto): Promise<IUser> {
+    const isValidHandle = await this.telegramService.validateHandle(
+      userData.telegramHandle,
+    );
+    if (!isValidHandle) throw new Error('Telegram handle is invalid');
     const hashedPassword = await this.helperService.hashPassword(
       userData.password,
     );
+    const emailOtp = this.helperService.generateOTP();
 
-    const { password, ...filteredUserData } = userData; // ✅ Exclude password
+    const { password, ...filteredUserData } = userData;
 
-    return this.prisma.user.create({
-      data: { ...filteredUserData, passwordHash: hashedPassword },
-    });
+    return this.prisma.user
+      .create({
+        data: {
+          ...filteredUserData,
+          passwordHash: hashedPassword,
+          verifyEmailCode: emailOtp,
+        },
+      })
+      .then(async (user) => {
+        await this.helperService.sendEmailVerification(
+          { email: userData.email, name: userData.name },
+          `your otp is ${emailOtp}`,
+        );
+        return user;
+      });
   }
 
   async getUsers(): Promise<IUser[]> {

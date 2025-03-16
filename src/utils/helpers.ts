@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import otpGenerator from 'otp-generator';
+import { SendMailClient } from 'zeptomail';
 
 @Injectable()
 export class HelperService {
-  constructor() {}
+  private client: SendMailClient;
+
+  constructor(private readonly jwtService: JwtService) {
+    const url = process.env.ZEPTO_URL;
+    const token = process.env.ZEPTO_TOKEN;
+    this.client = new SendMailClient({ url, token });
+  }
 
   public sendObjectResponse<T>(
     message: string,
@@ -32,5 +40,37 @@ export class HelperService {
     });
 
     return otp;
+  };
+
+  public generateToken = async (user) => {
+    const token = await this.jwtService.signAsync(user);
+    return token;
+  };
+
+  public sendEmailVerification = async (
+    user: { email: string; name: string },
+    content: string,
+  ): Promise<void> => {
+    try {
+      await this.client.sendMail({
+        from: {
+          address: 'hello@asher.com',
+          name: 'Asher',
+        },
+        to: [
+          {
+            email_address: {
+              address: user.email,
+              name: user.name,
+            },
+          },
+        ],
+        subject: 'Email Verification',
+        htmlBody: content,
+      });
+    } catch (error) {
+      console.error('Failed to send email:', (error as Error).message);
+      throw new Error('Failed to send email verification');
+    }
   };
 }

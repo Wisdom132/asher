@@ -21,6 +21,7 @@ model User {
   userType       UserType
   fundOrCompany  String
   passwordHash   String
+  verifyEmailCode  String?
   emailVerified  Boolean  @default(false)
   createdAt      DateTime @default(now())
 
