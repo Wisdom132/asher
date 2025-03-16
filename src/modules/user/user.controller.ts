@@ -12,6 +12,9 @@ import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { HelperService } from 'src/utils/helpers';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { UserType } from '@prisma/client';
+import { Roles } from 'src/guards/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('users')
 export class UserController {
@@ -30,7 +33,8 @@ export class UserController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.Investor)
   async getUsers() {
     const allUsers = await this.userService.getUsers();
     return this.helperService.sendObjectResponse(

@@ -49,13 +49,18 @@ export class AuthService {
     if (!user.emailVerified) {
       throw new UnauthorizedException('Email not verified');
     }
+    const userPayloadToSign = {
+      id: user.id,
+      email: user.email,
+      userType: user.userType,
+    };
 
     // Validate password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const token = await this.helperService.generateToken(user);
+    const token = await this.helperService.generateToken(userPayloadToSign);
 
     return { token, user };
   }
