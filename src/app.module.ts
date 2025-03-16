@@ -11,6 +11,7 @@ import { TelegramModule } from './modules/telegram/telegram.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { ConnectionModule } from './modules/connection/connection.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
       secret: process.env.JWT_SECRET || 'yourSecretKey',
       signOptions: { expiresIn: '1h' },
     }),
+    ConnectionModule,
   ],
   controllers: [AppController],
   providers: [AppService, HelperService, JwtStrategy],

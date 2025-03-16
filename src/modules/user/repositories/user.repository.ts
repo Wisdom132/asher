@@ -29,21 +29,20 @@ export class UserRepository {
 
     const { password, ...filteredUserData } = userData;
 
-    return this.prisma.user
-      .create({
-        data: {
-          ...filteredUserData,
-          passwordHash: hashedPassword,
-          verifyEmailCode: emailOtp,
-        },
-      })
-      .then(async (user) => {
-        await this.helperService.sendEmailVerification(
-          { email: userData.email, name: userData.name },
-          `your otp is ${emailOtp}`,
-        );
-        return user;
-      });
+    return this.prisma.user.create({
+      data: {
+        ...filteredUserData,
+        passwordHash: hashedPassword,
+        verifyEmailCode: emailOtp,
+      },
+    });
+    // .then(async (user) => {
+    //   await this.helperService.sendEmailVerification(
+    //     { email: userData.email, name: userData.name },
+    //     `your otp is ${emailOtp}`,
+    //   );
+    //   return user;
+    // });
   }
 
   async getUsers(): Promise<IUser[]> {
