@@ -7,4 +7,5 @@ export interface IUser {
   fundOrCompany: string;
   emailVerified: boolean;
   createdAt: Date;
+  verifyEmailCode: string;
 }
