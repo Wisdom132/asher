@@ -9,6 +9,8 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
   imports: [
@@ -18,12 +20,13 @@ import { JwtModule } from '@nestjs/jwt';
     UserModule,
     AuthModule,
     TelegramModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'yourSecretKey',
       signOptions: { expiresIn: '1h' },
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, HelperService],
+  providers: [AppService, HelperService, JwtStrategy],
 })
 export class AppModule {}
