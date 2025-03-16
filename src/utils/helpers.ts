@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import otpGenerator from 'otp-generator';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const otpGenerator = require('otp-generator');
 import { SendMailClient } from 'zeptomail';
 
 @Injectable()
@@ -69,7 +70,7 @@ export class HelperService {
         htmlBody: content,
       });
     } catch (error) {
-      console.error('Failed to send email:', (error as Error).message);
+      console.error('Failed to send email:', error);
       throw new Error('Failed to send email verification');
     }
   };

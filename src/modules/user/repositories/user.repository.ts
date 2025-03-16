@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { IUser } from '../interfaces/user.interface';
@@ -18,7 +18,10 @@ export class UserRepository {
     const isValidHandle = await this.telegramService.validateHandle(
       userData.telegramHandle,
     );
-    if (!isValidHandle) throw new Error('Telegram handle is invalid');
+    if (!isValidHandle)
+      throw new BadRequestException(
+        'Invalid Telegram handle. Please provide a valid username.',
+      );
     const hashedPassword = await this.helperService.hashPassword(
       userData.password,
     );
