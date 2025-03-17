@@ -12,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { ConnectionModule } from './modules/connection/connection.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ConnectionModule } from './modules/connection/connection.module';
       signOptions: { expiresIn: '1h' },
     }),
     ConnectionModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService, HelperService, JwtStrategy],

@@ -150,19 +150,64 @@ export class TelegramService {
     }
   }
 
-  async createGroup(title: string, userIds: number[]): Promise<number> {
+  async createGroup(
+    investorName: string,
+    companyName: string,
+  ): Promise<string> {
     try {
-      const response =
-        await this.httpService.axiosRef.post<TelegramCreateGroupResponse>(
-          `${this.apiUrl}/createChat`,
-          {
-            title,
-            user_ids: userIds,
-          },
-        );
-      return response.data?.result?.id;
+      const title = `Chat: ${investorName} & ${companyName}`;
+      const response = await this.httpService.axiosRef.post(
+        `${this.apiUrl}/createChat`,
+        {
+          title,
+        },
+      );
+      if (!response.data.ok) {
+        throw new Error(`Failed to create group: ${response.data.description}`);
+      }
+      return response.data.result.id;
     } catch (error) {
+      console.log('error', error);
       throw new Error('Failed to create Telegram group', error.response?.data);
+    }
+  }
+
+  async addUserToGroup(chatId: string, userId: string): Promise<boolean> {
+    try {
+      const response = await this.httpService.axiosRef.post(
+        `${this.apiUrl}/inviteChatMember`,
+        {
+          chat_id: chatId,
+          user_id: userId,
+        },
+      );
+
+      if (!response.data.ok) {
+        throw new Error(`Failed to add user: ${response.data.description}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error adding user to Telegram group:', error.message);
+      throw error;
+    }
+  }
+
+  async sendWelcomeMessage(
+    chatId: string,
+    investorName: string,
+    companyName: string,
+  ): Promise<void> {
+    const message = `Welcome ${investorName} and ${companyName} to your private discussion!`;
+
+    try {
+      await this.httpService.axiosRef.post(`${this.apiUrl}/sendMessage`, {
+        chat_id: chatId,
+        text: message,
+      });
+    } catch (error) {
+      console.error('Error sending welcome message:', error.message);
+      throw error;
     }
   }
 
