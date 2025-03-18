@@ -45,7 +45,7 @@ export class TelegramController {
       throw new BadRequestException('Invalid request payload');
     }
     try {
-      return await this.telegramService.createGroupWithMTProto(
+      return await this.telegramService.createGroup(
         investorName,
         companyName,
         participantUsernames,

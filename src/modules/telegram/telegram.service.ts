@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpService } from '@nestjs/axios';
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions';
 import { Api } from 'telegram/tl';
@@ -155,44 +150,80 @@ export class TelegramService {
     }
   }
 
-  // async createGroup(
-  //   investorName: string,
-  //   companyName: string,
-  // ): Promise<string> {
-  //   try {
-  //     const title = `Chat: ${investorName} & ${companyName}`;
-  //     const response = await this.httpService.axiosRef.post(
-  //       `${this.apiUrl}/createChat`,
-  //       {
-  //         title,
-  //       },
-  //     );
-  //     if (!response.data.ok) {
-  //       throw new Error(`Failed to create group: ${response.data.description}`);
-  //     }
-  //     return response.data.result.id;
-  //   } catch (error) {
-  //     console.log('error', error);
-  //     throw new Error('Failed to create Telegram group', error.response?.data);
-  //   }
-  // }
+  async getBotDetails() {
+    try {
+      const botDetails = await this.httpService.axiosRef.post(
+        `${this.apiUrl}/getMe`,
+      );
+      return botDetails.data;
+    } catch (error) {
+      console.error('Error sending welcome message:', error.message);
+      throw error;
+    }
+  }
 
-  async createGroupWithMTProto(
+  async setBotAsGroupAdmin(chatId) {
+    try {
+      const botDetails = await this.getBotDetails();
+      console.log('chatId', chatId);
+
+      const response = await this.client.invoke(
+        new Api.messages.EditChatAdmin({
+          chatId,
+          userId: String(botDetails.result.id),
+          isAdmin: true,
+        }),
+      );
+    } catch (error) {
+      console.error('Error making bot admin:', error.message);
+      throw error;
+    }
+  }
+
+  async sendWelcomeMessage(
+    groupId: string,
+    investorName: string,
+    companyName: string,
+  ): Promise<void> {
+    const botDetails = await this.getBotDetails();
+    const message = `Welcome ${investorName} and ${companyName} to your private discussion!`;
+    try {
+      await this.httpService.axiosRef.post(`${this.apiUrl}/sendMessage`, {
+        chat_id: groupId,
+        text: message,
+      });
+    } catch (error) {
+      console.error('Error sending welcome message:', error.message);
+      throw error;
+    }
+  }
+
+  async createGroup(
     investorName: string,
     companyName: string,
     participantUsernames: string[],
   ): Promise<any> {
     try {
+      const botDetails = await this.getBotDetails();
+      console.log('botDetails', botDetails);
+
       const chatTitle = `Chat: ${investorName} & ${companyName}`;
+      const allParticipants = [
+        ...participantUsernames,
+        `@${botDetails.result.username}`,
+      ];
+      console.log('allParticipants', allParticipants);
       const response = await this.client.invoke(
         new Api.messages.CreateChat({
-          users: participantUsernames,
+          users: allParticipants,
           title: chatTitle,
         }),
       );
+      console.log('Bot successfully added to group.');
+
       return response.toJSON();
     } catch (err) {
-      throw new Error('Failed to create Telegram group using MTProto');
+      throw new Error('Failed to create Telegram group using MTProto', err);
     }
   }
 }
