@@ -2,8 +2,8 @@
 import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
-  // OnModuleInit,
-  // OnModuleDestroy,
+  OnModuleInit,
+  OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
 import { TelegramClient } from 'telegram';
@@ -133,96 +133,66 @@ export class TelegramService {
     console.log('🚫 Disconnected from Telegram');
   }
 
-  async validateHandle(handle: string): Promise<boolean> {
+  async validateHandle(handle: string): Promise<number | null> {
     try {
       const result = await this.client.invoke(
         new Api.contacts.ResolveUsername({ username: handle.replace('@', '') }),
       );
       console.log('User found:', result.users);
-      return result.users.length > 0;
+      if (result.users.length > 0) {
+        const userId = Number(result.users[0].id);
+        console.log(`✅ User found: ${handle}, ID: ${userId}`);
+        return userId;
+      }
+      return null;
     } catch (error) {
       if (error.message.includes('USERNAME_NOT_OCCUPIED')) {
         console.log('❌ Username does NOT exist.');
-        return false;
+        return null;
       }
       console.error('Error validating Telegram handle:', error);
-      return false;
+      return null;
     }
   }
 
-  async createGroup(
+  // async createGroup(
+  //   investorName: string,
+  //   companyName: string,
+  // ): Promise<string> {
+  //   try {
+  //     const title = `Chat: ${investorName} & ${companyName}`;
+  //     const response = await this.httpService.axiosRef.post(
+  //       `${this.apiUrl}/createChat`,
+  //       {
+  //         title,
+  //       },
+  //     );
+  //     if (!response.data.ok) {
+  //       throw new Error(`Failed to create group: ${response.data.description}`);
+  //     }
+  //     return response.data.result.id;
+  //   } catch (error) {
+  //     console.log('error', error);
+  //     throw new Error('Failed to create Telegram group', error.response?.data);
+  //   }
+  // }
+
+  async createGroupWithMTProto(
     investorName: string,
     companyName: string,
-  ): Promise<string> {
+    participantUsernames: string[],
+  ): Promise<any> {
     try {
-      const title = `Chat: ${investorName} & ${companyName}`;
-      const response = await this.httpService.axiosRef.post(
-        `${this.apiUrl}/createChat`,
-        {
-          title,
-        },
+      const chatTitle = `Chat: ${investorName} & ${companyName}`;
+      const response = await this.client.invoke(
+        new Api.messages.CreateChat({
+          users: participantUsernames,
+          title: chatTitle,
+        }),
       );
-      if (!response.data.ok) {
-        throw new Error(`Failed to create group: ${response.data.description}`);
-      }
-      return response.data.result.id;
-    } catch (error) {
-      console.log('error', error);
-      throw new Error('Failed to create Telegram group', error.response?.data);
-    }
-  }
-
-  async addUserToGroup(chatId: string, userId: string): Promise<boolean> {
-    try {
-      const response = await this.httpService.axiosRef.post(
-        `${this.apiUrl}/inviteChatMember`,
-        {
-          chat_id: chatId,
-          user_id: userId,
-        },
-      );
-
-      if (!response.data.ok) {
-        throw new Error(`Failed to add user: ${response.data.description}`);
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error adding user to Telegram group:', error.message);
-      throw error;
-    }
-  }
-
-  async sendWelcomeMessage(
-    chatId: string,
-    investorName: string,
-    companyName: string,
-  ): Promise<void> {
-    const message = `Welcome ${investorName} and ${companyName} to your private discussion!`;
-
-    try {
-      await this.httpService.axiosRef.post(`${this.apiUrl}/sendMessage`, {
-        chat_id: chatId,
-        text: message,
-      });
-    } catch (error) {
-      console.error('Error sending welcome message:', error.message);
-      throw error;
-    }
-  }
-
-  async getMessages(chatId: number, limit: number = 10): Promise<any[]> {
-    try {
-      const response =
-        await this.httpService.axiosRef.get<TelegramGetMessagesResponse>(
-          `${this.apiUrl}/getUpdates`,
-          {
-            params: { chat_id: chatId, limit },
-          },
-        );
-      return response.data.result;
-    } catch (error) {
-      throw new Error('Failed to retrieve messages', error.response?.data);
+      return response.toJSON();
+    } catch (err) {
+      throw new Error('Failed to create Telegram group using MTProto');
     }
   }
 }

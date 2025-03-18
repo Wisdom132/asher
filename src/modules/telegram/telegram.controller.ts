@@ -7,6 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { TelegramService } from './telegram.service';
+import { CreateGroupDto } from './dtos/telegram.dto';
 
 @Controller('telegram')
 export class TelegramController {
@@ -15,13 +16,13 @@ export class TelegramController {
   @Get('validate-handle')
   async validateHandle(
     @Query('handle') handle: string,
-  ): Promise<{ isValid: boolean }> {
+  ): Promise<number | null> {
     if (!handle) {
       throw new BadRequestException('Telegram handle is required');
     }
 
     const isValid = await this.telegramService.validateHandle(handle);
-    return { isValid };
+    return isValid;
   }
 
   @Post('login')
@@ -35,5 +36,22 @@ export class TelegramController {
   async isLoggedIn() {
     const status = await this.telegramService.isLoggedIn();
     return { loggedIn: status };
+  }
+
+  @Post('add-to-group')
+  async addUser(@Body() body: CreateGroupDto) {
+    const { investorName, companyName, participantUsernames } = body;
+    if (!investorName || !companyName || !Array.isArray(participantUsernames)) {
+      throw new BadRequestException('Invalid request payload');
+    }
+    try {
+      return await this.telegramService.createGroupWithMTProto(
+        investorName,
+        companyName,
+        participantUsernames,
+      );
+    } catch (error) {
+      throw new BadRequestException('Failed to create Telegram group', error);
+    }
   }
 }

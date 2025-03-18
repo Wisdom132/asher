@@ -31,23 +31,20 @@ export class ChatService {
       throw new BadRequestException('Invalid users involved in chat request');
     }
 
-    const groupId = await this.telegramService.createGroup(
+    const groupId = await this.telegramService.createGroupWithMTProto(
       investor.name,
       company.name,
+      [],
     );
 
-    await Promise.all([
-      this.telegramService.addUserToGroup(groupId, request.investorId),
-      this.telegramService.addUserToGroup(groupId, request.companyId),
-    ]);
-    await Promise.all([
-      this.telegramService.sendWelcomeMessage(
-        groupId,
-        investor.name,
-        company.name,
-      ),
-      this.chatRepository.updateChatStatus(requestId, ChatStatus.ACCEPTED),
-    ]);
+    // await Promise.all([
+    //   this.telegramService.sendWelcomeMessage(
+    //     groupId,
+    //     investor.name,
+    //     company.name,
+    //   ),
+    //   this.chatRepository.updateChatStatus(requestId, ChatStatus.ACCEPTED),
+    // ]);
 
     return { success: true, groupId };
   }
