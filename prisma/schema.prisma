@@ -33,6 +33,7 @@ model User {
   receivedChatRequests ChatRequest[] @relation("ReceivedChatRequests")
 
   sentMessages ChatMessage[] @relation("SentMessages")
+  ReceivedMessages ChatMessage[] @relation("ReceivedMessages")
 
   blockedUsers   BlockedUser[] @relation("BlockerRelation")
   blockedByUsers BlockedUser[] @relation("BlockedRelation")
@@ -96,14 +97,26 @@ enum ChatStatus {
 }
 
 model ChatMessage {
-  id        String      @id @default(uuid())
-  chat      ChatRequest @relation(fields: [chatId], references: [id])
-  chatId    String
-  sender    User        @relation(fields: [senderId], references: [id], name: "SentMessages")
-  senderId  String
-  message   String
-  timestamp DateTime    @default(now())
+  id          String      @id @default(uuid())
+  chat        ChatRequest @relation(fields: [chatId], references: [id])
+  chatId      String
+  sender      User        @relation(fields: [senderId], references: [id], name: "SentMessages")
+  senderId    String
+  receiver    User        @relation(fields: [receiverId], references: [id], name: "ReceivedMessages")
+  receiverId  String
+  message     String
+  timestamp   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  status      MessageStatus @default(SENT)
+  deletedAt   DateTime?   
 }
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
 
 model BlockedUser {
   id        String   @id @default(uuid())

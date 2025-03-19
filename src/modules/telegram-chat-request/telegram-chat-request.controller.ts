@@ -8,7 +8,7 @@ import {
   Req,
   Get,
 } from '@nestjs/common';
-import { ChatService } from './chat.service';
+import { TelegramChatRequestService } from './telegram-chat-request.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserType } from '@prisma/client';
@@ -16,8 +16,8 @@ import { Roles } from 'src/guards/decorators/roles.decorator';
 import { Request } from 'express';
 
 @Controller('chats')
-export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+export class TelegramChatRequestController {
+  constructor(private readonly chatService: TelegramChatRequestService) {}
 
   @Post('request')
   @UseGuards(JwtAuthGuard, RolesGuard)

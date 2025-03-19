@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ChatStatus, UserType } from '@prisma/client';
 
 @Injectable()
-export class ChatRepository {
+export class TelegramChatRequestRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createChatRequest(companyId: string, investorId: string) {

@@ -12,8 +12,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { ConnectionModule } from './modules/connection/connection.module';
-import { ChatModule } from './modules/chat/chat.module';
+import { TelegramChatRequestModule } from './modules/telegram-chat-request/telegram-chat-request.module';
 import { IntroRequestModule } from './modules/intro-request/intro-request.module';
+import { InChatModule } from './modules/in-chat/in-chat.module';
 
 @Module({
   imports: [
@@ -29,8 +30,9 @@ import { IntroRequestModule } from './modules/intro-request/intro-request.module
       signOptions: { expiresIn: '1h' },
     }),
     ConnectionModule,
-    ChatModule,
+    TelegramChatRequestModule,
     IntroRequestModule,
+    InChatModule,
   ],
   controllers: [AppController],
   providers: [AppService, HelperService, JwtStrategy],

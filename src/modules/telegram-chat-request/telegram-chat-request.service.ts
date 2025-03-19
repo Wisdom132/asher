@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ChatRepository } from './repositories/chat.repository';
+import { TelegramChatRequestRepository } from './repositories/telegram-chat-request.repository';
 import { ChatStatus, UserType } from '@prisma/client';
 import { TelegramService } from 'src/modules/telegram/telegram.service';
 import { UserRepository } from '../user/repositories/user.repository';
 @Injectable()
-export class ChatService {
+export class TelegramChatRequestService {
   constructor(
-    private readonly chatRepository: ChatRepository,
+    private readonly chatRepository: TelegramChatRequestRepository,
     private readonly userRepository: UserRepository,
     private readonly telegramService: TelegramService,
   ) {}
@@ -43,14 +43,16 @@ export class ChatService {
 
     await this.telegramService.setBotAsGroupAdmin(String(groupId));
 
-    await Promise.all([
-      this.telegramService.sendWelcomeMessage(
-        String(groupId),
-        investor.name,
-        company.name,
-      ),
-      this.chatRepository.updateChatStatus(requestId, ChatStatus.ACCEPTED),
-    ]);
+    await this.chatRepository.updateChatStatus(requestId, ChatStatus.ACCEPTED);
+
+    // await Promise.all([
+    //   this.telegramService.sendWelcomeMessage(
+    //     String(groupId),
+    //     investor.name,
+    //     company.name,
+    //   ),
+    //   this.chatRepository.updateChatStatus(requestId, ChatStatus.ACCEPTED),
+    // ]);
 
     return { success: true, groupId: Number(groupId) };
   }
