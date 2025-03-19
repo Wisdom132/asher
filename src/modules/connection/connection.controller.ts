@@ -12,7 +12,9 @@ import {
 import { ConnectionService } from './connection.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { Request } from 'express';
-import { ConnectionStatus } from '@prisma/client';
+import { ConnectionStatus, UserType } from '@prisma/client';
+import { Roles } from 'src/guards/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('connections')
 @UseGuards(JwtAuthGuard)
@@ -20,6 +22,8 @@ export class ConnectionController {
   constructor(private readonly connectionService: ConnectionService) {}
 
   @Post('request')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.Investor)
   async requestConnection(
     @Body() body: { companyId: string },
     @Req() req: Request,
@@ -32,6 +36,8 @@ export class ConnectionController {
   }
 
   @Patch('respond/:requestId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.Company)
   async respondToRequest(
     @Param('requestId') requestId: string,
     @Req() req: Request,

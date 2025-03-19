@@ -39,6 +39,9 @@ model User {
 
   connectionsAsInvestor Connection[] @relation(name: "InvestorConnections")
   connectionsAsCompany  Connection[] @relation(name: "CompanyConnections")
+
+  sentIntroRequests     IntroductionRequest[] @relation("IntroCompany")
+  receivedIntroRequests IntroductionRequest[] @relation("IntroInvestor")
 }
 
 enum UserType {
@@ -109,4 +112,22 @@ model BlockedUser {
   blocked   User     @relation(name: "BlockedRelation", fields: [blockedId], references: [id])
   blockedId String
   createdAt DateTime @default(now())
+}
+
+model IntroductionRequest {
+  id                String         @id @default(uuid())
+  company           User           @relation(fields: [companyId], references: [id], name: "IntroCompany")
+  companyId         String
+  investor          User           @relation(fields: [investorId], references: [id], name: "IntroInvestor")
+  investorId        String
+  status            IntroductionStatus @default(PENDING)
+  createdAt         DateTime       @default(now())
+
+  @@unique([companyId, investorId]) // Ensures a company can only request an intro once per investor
+}
+
+enum IntroductionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }

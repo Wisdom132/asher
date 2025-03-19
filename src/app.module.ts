@@ -13,6 +13,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { ConnectionModule } from './modules/connection/connection.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { IntroRequestModule } from './modules/intro-request/intro-request.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ChatModule } from './modules/chat/chat.module';
     }),
     ConnectionModule,
     ChatModule,
+    IntroRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService, HelperService, JwtStrategy],
