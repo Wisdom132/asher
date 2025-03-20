@@ -5,7 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class InChatRepository {
   constructor(private prisma: PrismaService) {}
 
-  // Save a new chat message
   async saveMessage(
     senderId: string,
     receiverId: string,

@@ -5,6 +5,7 @@ import {
   Query,
   Body,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { TelegramService } from './telegram.service';
 import { CreateGroupDto } from './dtos/telegram.dto';
@@ -16,13 +17,22 @@ export class TelegramController {
   @Get('validate-handle')
   async validateHandle(
     @Query('handle') handle: string,
-  ): Promise<number | null> {
-    if (!handle) {
+  ): Promise<{ isValid: boolean }> {
+    if (!handle?.trim()) {
       throw new BadRequestException('Telegram handle is required');
     }
 
-    const isValid = await this.telegramService.validateHandle(handle);
-    return isValid;
+    try {
+      const { isValid } = await this.telegramService.validateHandle(
+        handle.trim(),
+      );
+      return { isValid };
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        'Error validating Telegram handle',
+        error,
+      );
+    }
   }
 
   @Post('login')

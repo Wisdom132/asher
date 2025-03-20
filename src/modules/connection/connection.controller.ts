@@ -35,6 +35,13 @@ export class ConnectionController {
     );
   }
 
+  @Get('/companies')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.Investor)
+  async getCompanies(@Req() req) {
+    return this.connectionService.getCompaniesWithConnectionStatus(req.user.id);
+  }
+
   @Patch('respond/:requestId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.Company)

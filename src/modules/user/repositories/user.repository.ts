@@ -5,6 +5,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { IUser } from '../interfaces/user.interface';
 import { HelperService } from '../../../utils/helpers';
 import { TelegramService } from '../../telegram/telegram.service';
+import { UserType } from '@prisma/client';
 
 @Injectable()
 export class UserRepository {
@@ -15,10 +16,11 @@ export class UserRepository {
   ) {}
 
   async createUser(userData: CreateUserDto): Promise<IUser> {
-    const isValidHandle = await this.telegramService.validateHandle(
+    const { isValid } = await this.telegramService.validateHandle(
       userData.telegramHandle,
     );
-    if (!isValidHandle)
+
+    if (!isValid)
       throw new BadRequestException(
         'Invalid Telegram handle. Please provide a valid username.',
       );
@@ -43,6 +45,12 @@ export class UserRepository {
     //   );
     //   return user;
     // });
+  }
+
+  async getUsersByType(userType: UserType) {
+    return this.prisma.user.findMany({
+      where: { userType },
+    });
   }
 
   async getUsers(): Promise<IUser[]> {

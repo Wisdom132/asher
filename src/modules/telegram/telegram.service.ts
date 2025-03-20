@@ -38,7 +38,10 @@ export class TelegramService {
   private readonly botToken: string;
   private readonly apiUrl: string;
   private client: TelegramClient;
-  private readonly sessionFilePath = path.join(__dirname, '../../session.txt');
+  private readonly sessionFilePath = path.join(
+    __dirname,
+    '../../../session.txt',
+  );
   private stringSession: StringSession;
   private readonly logger = new Logger(TelegramService.name);
 
@@ -128,25 +131,26 @@ export class TelegramService {
     console.log('🚫 Disconnected from Telegram');
   }
 
-  async validateHandle(handle: string): Promise<number | null> {
+  async validateHandle(
+    handle: string,
+  ): Promise<{ isValid: boolean; error?: string }> {
     try {
       const result = await this.client.invoke(
         new Api.contacts.ResolveUsername({ username: handle.replace('@', '') }),
       );
       console.log('User found:', result.users);
+
       if (result.users.length > 0) {
-        const userId = Number(result.users[0].id);
-        console.log(`✅ User found: ${handle}, ID: ${userId}`);
-        return userId;
+        return { isValid: true };
       }
-      return null;
+      return { isValid: false, error: 'Username not found' };
     } catch (error) {
       if (error.message.includes('USERNAME_NOT_OCCUPIED')) {
         console.log('❌ Username does NOT exist.');
-        return null;
+        return { isValid: false, error: 'Username does NOT exist' };
       }
       console.error('Error validating Telegram handle:', error);
-      return null;
+      return { isValid: false, error: 'Unknown error occurred' };
     }
   }
 

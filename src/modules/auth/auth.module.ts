@@ -10,7 +10,7 @@ import { UserModule } from '../user/user.module';
     UserModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'yourSecretKey',
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '6h' },
     }),
   ],
   providers: [AuthService, PrismaService, HelperService],

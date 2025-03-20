@@ -4,17 +4,39 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConnectionRepository } from './repositories/connection.repository';
-import { ConnectionStatus } from '@prisma/client';
+import { ConnectionStatus, UserType } from '@prisma/client';
+import { UserRepository } from 'src/modules/user/repositories/user.repository';
 
 @Injectable()
 export class ConnectionService {
-  constructor(private readonly connectionRepository: ConnectionRepository) {}
+  constructor(
+    private readonly connectionRepository: ConnectionRepository,
+    private readonly userRepository: UserRepository,
+  ) {}
 
   async sendConnectionRequest(companyId: string, investorId: string) {
     return this.connectionRepository.createConnectionRequest(
       companyId,
       investorId,
     );
+  }
+
+  async getCompaniesWithConnectionStatus(investorId: string) {
+    const allCompanies = await this.userRepository.getUsersByType(
+      UserType.Company,
+    );
+
+    const connectedCompanies = await this.getUserConnections(investorId);
+
+    const connectedCompanyIds = new Set(
+      connectedCompanies.map((conn) => conn.companyId),
+    );
+
+    // Return companies with connection status
+    return allCompanies.map((company) => ({
+      ...company,
+      isConnected: connectedCompanyIds.has(company.id),
+    }));
   }
 
   async handleConnectionRequest(

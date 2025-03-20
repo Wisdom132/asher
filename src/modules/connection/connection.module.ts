@@ -3,12 +3,13 @@ import { ConnectionService } from './connection.service';
 import { ConnectionController } from './connection.controller';
 import { ConnectionRepository } from './repositories/connection.repository';
 import { JwtModule } from '@nestjs/jwt';
-
+import { UserModule } from '../user/user.module';
 @Module({
   imports: [
+    UserModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'yourSecretKey',
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '6h' },
     }),
   ],
   providers: [ConnectionService, ConnectionRepository],

@@ -11,7 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
     TelegramModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'yourSecretKey',
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '6h' },
     }),
   ],
   providers: [UserService, UserRepository, HelperService],
