@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   UseGuards,
+  ParseArrayPipe,
 } from '@nestjs/common';
 import { ConnectionService } from './connection.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
@@ -65,7 +66,8 @@ export class ConnectionController {
   @Get('requests')
   async getUserConnectionRequests(
     @Req() req: Request,
-    @Query('statuses') statuses: ConnectionStatus[],
+    @Query('statuses', new ParseArrayPipe({ items: String, optional: true }))
+    statuses: ConnectionStatus[],
   ) {
     return this.connectionService.getUserConnectionRequests(
       req.user.id,

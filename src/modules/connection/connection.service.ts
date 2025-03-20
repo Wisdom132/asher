@@ -25,17 +25,26 @@ export class ConnectionService {
     const allCompanies = await this.userRepository.getUsersByType(
       UserType.Company,
     );
-
     const connectedCompanies = await this.getUserConnections(investorId);
+    const pendingRequests =
+      await this.connectionRepository.getConnectionRequestsByStatus(
+        ConnectionStatus.PENDING,
+        investorId,
+        'investor',
+      );
 
     const connectedCompanyIds = new Set(
       connectedCompanies.map((conn) => conn.companyId),
+    );
+    const pendingCompanyIds = new Set(
+      pendingRequests.map((req) => req.companyId),
     );
 
     // Return companies with connection status
     return allCompanies.map((company) => ({
       ...company,
       isConnected: connectedCompanyIds.has(company.id),
+      isPending: pendingCompanyIds.has(company.id),
     }));
   }
 

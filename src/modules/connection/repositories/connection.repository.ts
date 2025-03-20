@@ -110,16 +110,28 @@ export class ConnectionRepository {
   //   });
   // }
 
-  // async getConnectionRequestsByStatus(
-  //   statuses: ConnectionStatus | ConnectionStatus[],
-  // ) {
-  //   return this.prisma.connectionRequest.findMany({
-  //     where: {
-  //       status: Array.isArray(statuses) ? { in: statuses } : statuses,
-  //     },
-  //     include: { investor: true, company: true },
-  //   });
-  // }
+  async getConnectionRequestsByStatus(
+    statuses: ConnectionStatus | ConnectionStatus[],
+    userId?: string, // Optional filter for specific investor or company
+    userType?: 'investor' | 'company', // Determines if userId refers to an investor or company
+  ) {
+    const whereClause: any = {
+      status: Array.isArray(statuses) ? { in: statuses } : statuses,
+    };
+
+    if (userId && userType) {
+      whereClause[userType === 'investor' ? 'investorId' : 'companyId'] =
+        userId;
+    }
+
+    return this.prisma.connectionRequest.findMany({
+      where: whereClause,
+      include: {
+        investor: true,
+        company: true,
+      },
+    });
+  }
 
   // async getAllConnections() {
   //   return this.prisma.connection.findMany({

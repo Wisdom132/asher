@@ -227,6 +227,7 @@ export class TelegramService {
 
       return response.toJSON();
     } catch (err) {
+      console.log('error from creating bot', err);
       throw new Error('Failed to create Telegram group using MTProto', err);
     }
   }
