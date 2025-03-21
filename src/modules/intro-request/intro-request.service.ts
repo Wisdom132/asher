@@ -70,7 +70,7 @@ export class IntroRequestService {
       );
     }
 
-    return await this.introRequestRepo.updateIntroRequestStatus(
+    return this.introRequestRepo.updateIntroRequestStatus(
       updateIntroDto.requestId,
       updateIntroDto.status,
     );

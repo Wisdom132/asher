@@ -11,6 +11,12 @@ export class IntroRequestRepository {
   constructor(private prisma: PrismaService) {}
 
   async createIntroRequest(companyId: string, investorId: string) {
+    if (companyId === investorId) {
+      throw new ForbiddenException(
+        'You cannot request an introduction to yourself.',
+      );
+    }
+
     // Check if they are already connected
     const existingConnection = await this.prisma.connection.findFirst({
       where: {
@@ -32,7 +38,7 @@ export class IntroRequestRepository {
       where: {
         companyId,
         investorId,
-        status: 'PENDING',
+        status: IntroductionStatus.PENDING,
       },
     });
 
@@ -46,43 +52,37 @@ export class IntroRequestRepository {
       data: {
         companyId,
         investorId,
+        status: IntroductionStatus.PENDING,
       },
     });
   }
 
   async getIntroRequestsForInvestor(investorId: string) {
-    return await this.prisma.introductionRequest.findMany({
-      where: { investorId, status: 'PENDING' },
+    return this.prisma.introductionRequest.findMany({
+      where: { investorId, status: IntroductionStatus.PENDING },
     });
   }
 
   async getIntroRequestById(requestId: string) {
-    return await this.prisma.introductionRequest.findUnique({
+    return this.prisma.introductionRequest.findUnique({
       where: { id: requestId },
     });
   }
 
   async getIntroRequestsForUser(userId: string, userType: UserType) {
-    if (userType === UserType.Company) {
-      // Fetch introduction requests sent by the company
-      return await this.prisma.introductionRequest.findMany({
-        where: { companyId: userId },
-      });
-    } else if (userType === UserType.Investor) {
-      // Fetch introduction requests received by the investor
-      return await this.prisma.introductionRequest.findMany({
-        where: { investorId: userId },
-      });
-    }
-
-    throw new ForbiddenException('Invalid user type');
+    return this.prisma.introductionRequest.findMany({
+      where:
+        userType === UserType.Company
+          ? { companyId: userId }
+          : { investorId: userId },
+    });
   }
 
   async updateIntroRequestStatus(
     requestId: string,
     status: IntroductionStatus,
   ) {
-    return await this.prisma.introductionRequest.update({
+    return this.prisma.introductionRequest.update({
       where: { id: requestId },
       data: { status },
     });
