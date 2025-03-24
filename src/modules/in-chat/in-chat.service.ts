@@ -5,22 +5,16 @@ import { InChatRepository } from './repositories/in-chat.repository';
 export class InChatService {
   constructor(private inChatRepository: InChatRepository) {}
 
-  async sendMessage(
-    senderId: string,
-    receiverId: string,
-    chatId: string,
-    message: string,
-  ) {
+  async sendMessage(senderId: string, connectionId: string, message: string) {
     return await this.inChatRepository.saveMessage(
       senderId,
-      receiverId,
-      chatId,
+      connectionId,
       message,
     );
   }
 
-  async getChatMessages(chatId: string) {
-    return await this.inChatRepository.getChatMessages(chatId);
+  async getChatMessages(connectionId: string) {
+    return await this.inChatRepository.getChatMessages(connectionId);
   }
 
   async getMessagesBetweenUsers(user1Id: string, user2Id: string) {

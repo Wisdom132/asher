@@ -6,12 +6,14 @@ import {
 import { ConnectionRepository } from './repositories/connection.repository';
 import { ConnectionStatus, UserType } from '@prisma/client';
 import { UserRepository } from 'src/modules/user/repositories/user.repository';
+import { TelegramService } from 'src/modules/telegram/telegram.service';
 
 @Injectable()
 export class ConnectionService {
   constructor(
     private readonly connectionRepository: ConnectionRepository,
     private readonly userRepository: UserRepository,
+    private readonly telegramService: TelegramService,
   ) {}
 
   async sendConnectionRequest(companyId: string, investorId: string) {
@@ -66,6 +68,11 @@ export class ConnectionService {
       );
     }
 
+    const [investor, company] = await Promise.all([
+      this.userRepository.findUserById(connectionRequest.investorId),
+      this.userRepository.findUserById(connectionRequest.companyId),
+    ]);
+
     const updatedRequest =
       await this.connectionRepository.updateConnectionRequestStatus(
         requestId,
@@ -73,9 +80,18 @@ export class ConnectionService {
       );
 
     if (accept) {
+      const groupCreationResponse = await this.telegramService.createGroup(
+        investor.name,
+        company.name,
+        [investor.telegramHandle, company.telegramHandle],
+      );
+      const groupId = groupCreationResponse.updates.chats[0].id;
+      console.log('groupId details', String(groupId));
+      await this.telegramService.setBotAsGroupAdmin(String(groupId));
       await this.connectionRepository.createConnection(
         connectionRequest.companyId,
         connectionRequest.investorId,
+        String(groupId),
       );
     }
 

@@ -5,33 +5,30 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class InChatRepository {
   constructor(private prisma: PrismaService) {}
 
-  async saveMessage(
-    senderId: string,
-    receiverId: string,
-    chatId: string,
-    message: string,
-  ) {
-    return this.prisma.chatMessage.create({
-      data: { senderId, receiverId, chatId, message },
+  async saveMessage(senderId: string, connectionId: string, message: string) {
+    return await this.prisma.chatMessage.create({
+      data: { senderId, connectionId, message },
     });
   }
 
-  // Get all messages in a conversation
-  async getChatMessages(chatId: string) {
-    return this.prisma.chatMessage.findMany({
-      where: { chatId },
+  // Get all messages in a conversation (between connected users)
+  async getChatMessages(connectionId: string) {
+    return await this.prisma.chatMessage.findMany({
+      where: { connectionId },
       orderBy: { timestamp: 'asc' },
     });
   }
 
-  // Get messages between two users
+  // Get messages between two users in a connection
   async getMessagesBetweenUsers(user1Id: string, user2Id: string) {
-    return this.prisma.chatMessage.findMany({
+    return await this.prisma.chatMessage.findMany({
       where: {
-        OR: [
-          { senderId: user1Id, receiverId: user2Id },
-          { senderId: user2Id, receiverId: user1Id },
-        ],
+        connection: {
+          OR: [
+            { investorId: user1Id, companyId: user2Id },
+            { investorId: user2Id, companyId: user1Id },
+          ],
+        },
       },
       orderBy: { timestamp: 'asc' },
     });
@@ -42,7 +39,7 @@ export class InChatRepository {
     messageId: string,
     status: 'SENT' | 'DELIVERED' | 'READ',
   ) {
-    return this.prisma.chatMessage.update({
+    return await this.prisma.chatMessage.update({
       where: { id: messageId },
       data: { status },
     });
@@ -50,7 +47,7 @@ export class InChatRepository {
 
   // Soft delete a message
   async softDeleteMessage(messageId: string) {
-    return this.prisma.chatMessage.update({
+    return await this.prisma.chatMessage.update({
       where: { id: messageId },
       data: { deletedAt: new Date() },
     });

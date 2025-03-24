@@ -4,9 +4,11 @@ import { ConnectionController } from './connection.controller';
 import { ConnectionRepository } from './repositories/connection.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from '../user/user.module';
+import { TelegramModule } from '../telegram/telegram.module';
 @Module({
   imports: [
     UserModule,
+    TelegramModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'yourSecretKey',
       signOptions: { expiresIn: '6h' },

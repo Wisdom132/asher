@@ -75,9 +75,11 @@ model Connection {
   investor   User     @relation(name: "InvestorConnections", fields: [investorId], references: [id])
   investorId String
   company    User     @relation(name: "CompanyConnections", fields: [companyId], references: [id])
+  telegramGroupId String? 
   companyId  String
   createdAt  DateTime @default(now())
 
+  messages                ChatMessage[]  @relation("ConnectionMessages")
   @@unique([investorId, companyId]) // Ensures a unique connection
 }
 
@@ -99,18 +101,17 @@ enum ChatStatus {
   DECLINED
 }
 
-
 model ChatMessage {
-  id          String      @id @default(uuid())
-  chat        Chat        @relation(fields: [chatId], references: [id])
-  chatId      String
-  sender      User        @relation(fields: [senderId], references: [id], name: "SentMessages")
-  senderId    String
-  message     String
-  timestamp   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  deletedAt   DateTime?   
-  status      MessageStatus @default(SENT)
+  id           String         @id @default(uuid())
+  connection   Connection     @relation(fields: [connectionId], references: [id], name: "ConnectionMessages")
+  connectionId String
+  sender       User           @relation(fields: [senderId], references: [id], name: "SentMessages")
+  senderId     String
+  message      String
+  timestamp    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?   
+  status       MessageStatus  @default(SENT)
 }
 
 enum MessageStatus {
@@ -161,5 +162,5 @@ model Chat {
   investor                User               @relation(fields: [investorId], references: [id], name: "ChatInvestor")
   investorId              String
   createdAt               DateTime           @default(now())
-  messages                ChatMessage[]
+  // messages                ChatMessage[]
 }

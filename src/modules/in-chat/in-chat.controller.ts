@@ -10,7 +10,6 @@ export class InChatController {
     @Body()
     {
       senderId,
-      receiverId,
       chatId,
       message,
     }: {
@@ -20,12 +19,7 @@ export class InChatController {
       message: string;
     },
   ) {
-    return await this.chatService.sendMessage(
-      senderId,
-      receiverId,
-      chatId,
-      message,
-    );
+    return await this.chatService.sendMessage(senderId, chatId, message);
   }
 
   @Get(':chatId')

@@ -59,11 +59,16 @@ export class ConnectionRepository {
     });
   }
 
-  async createConnection(companyId: string, investorId: string) {
+  async createConnection(
+    companyId: string,
+    investorId: string,
+    telegramGroupId: string,
+  ) {
     return this.prisma.connection.create({
       data: {
         companyId,
         investorId,
+        telegramGroupId,
       },
     });
   }
