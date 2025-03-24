@@ -40,7 +40,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const savedMessage = await this.chatService.sendMessage(
       message.senderId,
-      message.connectionId, // Changed from chatId to connectionId
+      message.connectionId,
       message.message,
     );
 

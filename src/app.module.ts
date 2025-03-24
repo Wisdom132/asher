@@ -27,7 +27,7 @@ import { InChatModule } from './modules/in-chat/in-chat.module';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'yourSecretKey',
-      signOptions: { expiresIn: '6h' },
+      signOptions: { expiresIn: '7d' },
     }),
     ConnectionModule,
     TelegramChatRequestModule,

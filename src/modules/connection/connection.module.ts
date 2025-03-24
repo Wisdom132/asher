@@ -11,7 +11,7 @@ import { TelegramModule } from '../telegram/telegram.module';
     TelegramModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'yourSecretKey',
-      signOptions: { expiresIn: '6h' },
+      signOptions: { expiresIn: '7d' },
     }),
   ],
   providers: [ConnectionService, ConnectionRepository],
