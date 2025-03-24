@@ -27,7 +27,7 @@ export class UserRepository {
     const hashedPassword = await this.helperService.hashPassword(
       userData.password,
     );
-    const emailOtp = this.helperService.generateOTP();
+    // const emailOtp = this.helperService.generateOTP();
 
     const { password, ...filteredUserData } = userData;
 
@@ -35,16 +35,9 @@ export class UserRepository {
       data: {
         ...filteredUserData,
         passwordHash: hashedPassword,
-        verifyEmailCode: emailOtp,
+        verifyEmailCode: '123abc',
       },
     });
-    // .then(async (user) => {
-    //   await this.helperService.sendEmailVerification(
-    //     { email: userData.email, name: userData.name },
-    //     `your otp is ${emailOtp}`,
-    //   );
-    //   return user;
-    // });
   }
 
   async getUsersByType(userType: UserType) {
